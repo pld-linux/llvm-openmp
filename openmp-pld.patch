@@ -1,9 +1,9 @@
---- openmp-3.5.1.src/runtime/CMakeLists.txt.orig	2014-08-07 13:16:59.000000000 +0200
-+++ openmp-3.5.1.src/runtime/CMakeLists.txt	2015-01-22 17:31:26.169293063 +0100
-@@ -50,7 +50,7 @@
+--- openmp-3.6.0.src/runtime/CMakeLists.txt.orig	2015-03-22 07:29:25.543288244 +0100
++++ openmp-3.6.0.src/runtime/CMakeLists.txt	2015-03-22 07:37:02.083269086 +0100
+@@ -51,7 +51,7 @@
  # Build Configuration
  set(os_possible_values          lin mac win mic)
- set(arch_possible_values        32e 32 arm ppc64)
+ set(arch_possible_values        32e 32 arm ppc64 aarch64)
 -set(build_type_possible_values  release debug relwithdebinfo)
 +set(build_type_possible_values  release debug relwithdebinfo pld)
  set(omp_version_possible_values 40 30)

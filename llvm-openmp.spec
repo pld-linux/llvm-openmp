@@ -6,18 +6,18 @@
 Summary:	Intel OpenMP runtime library implementation for use with Clang
 Summary(pl.UTF-8):	Implementacja biblioteki uruchomieniowej OpenMP firmy Intel dla kompilatora Clang
 Name:		llvm-openmp
-Version:	3.5.1
+Version:	3.6.0
 Release:	1
 License:	BSD-like or MIT
 Group:		Libraries
 Source0:	http://llvm.org/releases/%{version}/openmp-%{version}.src.tar.xz
-# Source0-md5:	121ddb10167d7fc38b1f7e4b029cf059
+# Source0-md5:	e681500865e66e285af9cf3f4bfb6cf2
 Patch0:		openmp-pld.patch
 URL:		http://openmp.llvm.org/
 BuildRequires:	cmake >= 2.8
 %{?with_fortran:BuildRequires:	gcc-fortran}
 BuildRequires:	rpmbuild(macros) >= 1.605
-ExclusiveArch:	%{ix86} %{x8664} arm ppc64
+ExclusiveArch:	%{ix86} %{x8664} arm aarch64 ppc64
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %ifarch %{ix86}
@@ -26,7 +26,7 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %ifarch %{x8664}
 %define		iomp_arch	32e
 %endif
-%ifarch arm ppc64
+%ifarch arm aarch64 ppc64
 %define		iomp_arch	%{_arch}
 %endif
 
