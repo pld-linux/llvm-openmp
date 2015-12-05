@@ -6,13 +6,12 @@
 Summary:	Intel OpenMP runtime library implementation for use with Clang
 Summary(pl.UTF-8):	Implementacja biblioteki uruchomieniowej OpenMP firmy Intel dla kompilatora Clang
 Name:		llvm-openmp
-Version:	3.6.0
+Version:	3.7.0
 Release:	1
 License:	BSD-like or MIT
 Group:		Libraries
 Source0:	http://llvm.org/releases/%{version}/openmp-%{version}.src.tar.xz
-# Source0-md5:	e681500865e66e285af9cf3f4bfb6cf2
-Patch0:		openmp-pld.patch
+# Source0-md5:	f482c86fdead50ba246a1a2b0bbf206f
 URL:		http://openmp.llvm.org/
 BuildRequires:	cmake >= 2.8
 %{?with_fortran:BuildRequires:	gcc-fortran}
@@ -44,11 +43,23 @@ samym kompilatorem. Obsługa OpenMP 3.1 w Clangu jest w trakcie
 włączania do głównej linii kompilatora i można ją znaleźć w
 repozytorium OpenMP/Clang: <http://clang-omp.github.io/>. 
 
+%package devel
+Summary:	Header file for Intel OpenMP implementation
+Summary(pl.UTF-8):	Plik nagłówkowy implementacji OpenMP firmy Intel
+Group:		Development/Libraries
+Requires:	%{name} = %{version}-%{release}
+
+%description devel
+Header file for Intel OpenMP implementation.
+
+%description devel -l pl.UTF-8
+Plik nagłówkowy implementacji OpenMP firmy Intel.
+
 %package fortran-devel
 Summary:	Fortran modules for Intel OpenMP implementation
 Summary(pl.UTF-8):	Moduły Fortranu implementacji OpenMP firmy Intel
 Group:		Development/Libraries
-Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-devel = %{version}-%{release}
 
 %description fortran-devel
 Fortran modules for Intel OpenMP implementation.
@@ -58,17 +69,18 @@ Moduły Fortranu implementacji OpenMP firmy Intel.
 
 %prep
 %setup -q -n openmp-%{version}.src
-%patch0 -p1
 
 %build
 cd runtime
 install -d build
 cd build
+libsubdir=%{_lib}
 %cmake .. \
 %ifarch arm ppc64
-	-Darch=%{iomp_arch} \
+	-DLIBOMP_ARCH=%{iomp_arch} \
 %endif
-	%{?with_fortran:-Dcreate_fortran_modules=ON}
+	-DLIBOMP_LIBDIR_SUFFIX="${libsuffix#lib}" \
+	%{?with_fortran:-DLIBOMP_FORTRAN_MODULES=ON}
 
 %{__make}
 
@@ -76,10 +88,11 @@ cd build
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{%{_includedir}/iomp,%{_libdir}}
 
-cp -p runtime/exports/common.pld/include/omp_lib.f90 $RPM_BUILD_ROOT%{_includedir}/iomp
-cp -p runtime/exports/lin_%{iomp_arch}.pld/include/omp_lib*.mod $RPM_BUILD_ROOT%{_includedir}/iomp
-cp -p runtime/exports/lin_%{iomp_arch}.pld/include_compat/iomp_lib.h $RPM_BUILD_ROOT%{_includedir}/iomp
-install runtime/exports/lin_%{iomp_arch}.pld/lib/libiomp5.so $RPM_BUILD_ROOT%{_libdir}
+cp -p runtime/exports/common/include/*.h $RPM_BUILD_ROOT%{_includedir}/iomp
+%if %{with fortran}
+cp -p runtime/exports/lin_%{iomp_arch}/include_compat/*.mod $RPM_BUILD_ROOT%{_includedir}/iomp
+%endif
+install runtime/exports/lin_%{iomp_arch}/lib/libomp.so $RPM_BUILD_ROOT%{_libdir}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -90,10 +103,17 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc CREDITS.txt LICENSE.txt www/{README.txt,Reference.pdf,*.{html,css}}
-%attr(755,root,root) %{_libdir}/libiomp5.so
+%attr(755,root,root) %{_libdir}/libomp.so
+
+%files devel
+%defattr(644,root,root,755)
+%dir %{_includedir}/iomp
+%{_includedir}/iomp/omp.h
 
 %if %{with fortran}
 %files fortran-devel
 %defattr(644,root,root,755)
-%{_includedir}/iomp
+%{_includedir}/iomp/omp_lib.h
+%{_includedir}/iomp/omp_lib.mod
+%{_includedir}/iomp/omp_lib_kinds.mod
 %endif
