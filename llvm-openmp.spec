@@ -6,17 +6,17 @@
 Summary:	Intel OpenMP runtime library implementation for use with Clang
 Summary(pl.UTF-8):	Implementacja biblioteki uruchomieniowej OpenMP firmy Intel dla kompilatora Clang
 Name:		llvm-openmp
-Version:	3.9.1
+Version:	6.0.0
 Release:	1
 License:	BSD-like or MIT
 Group:		Libraries
 Source0:	http://releases.llvm.org/%{version}/openmp-%{version}.src.tar.xz
-# Source0-md5:	f076916bf2f49229b4df9fa0bb002599
+# Source0-md5:	eb6b8d0318a950a8192933a3b500585d
 URL:		http://openmp.llvm.org/
 BuildRequires:	cmake >= 2.8
 %{?with_fortran:BuildRequires:	gcc-fortran}
 BuildRequires:	rpmbuild(macros) >= 1.605
-ExclusiveArch:	%{ix86} %{x8664} arm aarch64 ppc64
+ExclusiveArch:	%{ix86} %{x8664} %{arm} aarch64 ppc64
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %ifarch %{ix86}
@@ -25,7 +25,7 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %ifarch %{x8664}
 %define		iomp_arch	32e
 %endif
-%ifarch arm aarch64 ppc64
+%ifarch %{arm} aarch64 ppc64
 %define		iomp_arch	%{_arch}
 %endif
 
@@ -71,12 +71,11 @@ Moduły Fortranu implementacji OpenMP firmy Intel.
 %setup -q -n openmp-%{version}.src
 
 %build
-cd runtime
 install -d build
 cd build
 libsubdir=%{_lib}
 %cmake .. \
-%ifarch arm ppc64
+%ifarch %{arm} ppc64
 	-DLIBOMP_ARCH=%{iomp_arch} \
 %endif
 	-DLIBOMP_LIBDIR_SUFFIX="${libsuffix#lib}" \
@@ -86,13 +85,12 @@ libsubdir=%{_lib}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{%{_includedir}/iomp,%{_libdir}}
 
-cp -p runtime/exports/common/include/*.h $RPM_BUILD_ROOT%{_includedir}/iomp
-%if %{with fortran}
-cp -p runtime/exports/lin_%{iomp_arch}/include_compat/*.mod $RPM_BUILD_ROOT%{_includedir}/iomp
-%endif
-install runtime/exports/lin_%{iomp_arch}/lib/libomp.so $RPM_BUILD_ROOT%{_libdir}
+%{__make} -C build install \
+	DESTDIR=$RPM_BUILD_ROOT
+
+# libgomp dropin symlink, but PLD ships original libgomp
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/libgomp.so
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -104,16 +102,18 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc CREDITS.txt LICENSE.txt www/{README.txt,Reference.pdf,*.{html,css}}
 %attr(755,root,root) %{_libdir}/libomp.so
+%attr(755,root,root) %{_libdir}/libomptarget.so
 
 %files devel
 %defattr(644,root,root,755)
-%dir %{_includedir}/iomp
-%{_includedir}/iomp/omp.h
+%attr(755,root,root) %{_libdir}/libiomp5.so
+%{_includedir}/omp.h
+%{_includedir}/ompt.h
 
 %if %{with fortran}
 %files fortran-devel
 %defattr(644,root,root,755)
-%{_includedir}/iomp/omp_lib.h
-%{_includedir}/iomp/omp_lib.mod
-%{_includedir}/iomp/omp_lib_kinds.mod
+%{_includedir}/omp_lib.h
+%{_includedir}/omp_lib.mod
+%{_includedir}/omp_lib_kinds.mod
 %endif
