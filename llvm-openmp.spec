@@ -6,17 +6,19 @@
 Summary:	Intel OpenMP runtime library implementation for use with Clang
 Summary(pl.UTF-8):	Implementacja biblioteki uruchomieniowej OpenMP firmy Intel dla kompilatora Clang
 Name:		llvm-openmp
-Version:	10.0.1
+Version:	11.0.1
 Release:	1
 License:	BSD-like or MIT (OMP), Apache v2.0 (Archer)
 Group:		Libraries
 #Source0Download: https://github.com/llvm/llvm-project/releases/
 Source0:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{version}/openmp-%{version}.src.tar.xz
-# Source0-md5:	f47844daec19ddbbf50428b64f27e088
-URL:		http://openmp.llvm.org/
+# Source0-md5:	b92f907b7bf1fda41e792ce80983d5fa
+URL:		https://openmp.llvm.org/
 BuildRequires:	cmake >= 2.8
 %{?with_fortran:BuildRequires:	gcc-fortran}
 BuildRequires:	rpmbuild(macros) >= 1.605
+BuildRequires:	tar >= 1:1.22
+BuildRequires:	xz
 ExclusiveArch:	%{ix86} %{x8664} %{arm} aarch64 ppc64
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -113,6 +115,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/omp.h
 %{_includedir}/omp-tools.h
 %{_includedir}/ompt.h
+%{_includedir}/ompt-multiplex.h
 
 %if %{with fortran}
 %files fortran-devel
