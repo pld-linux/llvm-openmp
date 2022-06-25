@@ -6,13 +6,14 @@
 Summary:	Intel OpenMP runtime library implementation for use with Clang
 Summary(pl.UTF-8):	Implementacja biblioteki uruchomieniowej OpenMP firmy Intel dla kompilatora Clang
 Name:		llvm-openmp
-Version:	12.0.1
+Version:	14.0.6
 Release:	1
 License:	BSD-like or MIT (OMP), Apache v2.0 (Archer)
 Group:		Libraries
 #Source0Download: https://github.com/llvm/llvm-project/releases/
 Source0:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{version}/openmp-%{version}.src.tar.xz
-# Source0-md5:	761bfb2ce2c69c92745f1a9d45dc7601
+# Source0-md5:	b94978b13a7d411f6a448322dcc4954e
+Patch0:		openmp-x86.patch
 URL:		https://openmp.llvm.org/
 BuildRequires:	cmake >= 3.13.4
 %{?with_fortran:BuildRequires:	gcc-fortran}
@@ -72,6 +73,7 @@ Moduły Fortranu implementacji OpenMP firmy Intel.
 
 %prep
 %setup -q -n openmp-%{version}.src
+%patch0 -p1
 
 %build
 install -d build
@@ -83,6 +85,7 @@ libsubdir=%{_lib}
 %endif
 	-DLIBOMP_LIBDIR_SUFFIX="${libsuffix#lib}" \
 	%{?with_fortran:-DLIBOMP_FORTRAN_MODULES=ON}
+# -DLLVM_ENABLE_SPHINX=ON needs llvm sources
 
 %{__make}
 
@@ -103,9 +106,11 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc CREDITS.txt LICENSE.txt www/{README.txt,Reference.pdf,*.{html,css}}
+%doc CREDITS.txt LICENSE.TXT README.rst docs/ReleaseNotes.rst
 %attr(755,root,root) %{_libdir}/libarcher.so
 %attr(755,root,root) %{_libdir}/libomp.so
+%attr(755,root,root) %{_libdir}/libompd.so
+%attr(755,root,root) %{_libdir}/libomptarget.so
 
 %files devel
 %defattr(644,root,root,755)
@@ -115,6 +120,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/omp-tools.h
 %{_includedir}/ompt.h
 %{_includedir}/ompt-multiplex.h
+%{_libdir}/cmake/openmp
 
 %if %{with fortran}
 %files fortran-devel

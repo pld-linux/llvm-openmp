@@ -1,0 +1,13 @@
+KMP_HAVE_UMWAIT code has some expectations not compatible with 32-bit mode
+
+--- openmp-14.0.6.src/runtime/src/kmp_os.h.orig	2022-06-22 18:46:24.000000000 +0200
++++ openmp-14.0.6.src/runtime/src/kmp_os.h	2022-06-25 21:29:05.944655684 +0200
+@@ -288,7 +288,7 @@ template <> struct traits_t<unsigned lon
+   ((KMP_ARCH_X86 || KMP_ARCH_X86_64) && (KMP_OS_LINUX || KMP_OS_WINDOWS) &&    \
+    !KMP_MIC2)
+ #define KMP_HAVE_UMWAIT                                                        \
+-  ((KMP_ARCH_X86 || KMP_ARCH_X86_64) && (KMP_OS_LINUX || KMP_OS_WINDOWS) &&    \
++  ((KMP_ARCH_X86_64) && (KMP_OS_LINUX || KMP_OS_WINDOWS) &&    \
+    !KMP_MIC)
+ 
+ #if KMP_OS_WINDOWS
