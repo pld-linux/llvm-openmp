@@ -6,17 +6,21 @@
 Summary:	Intel OpenMP runtime library implementation for use with Clang
 Summary(pl.UTF-8):	Implementacja biblioteki uruchomieniowej OpenMP firmy Intel dla kompilatora Clang
 Name:		llvm-openmp
-Version:	14.0.6
+Version:	17.0.4
 Release:	1
 License:	BSD-like or MIT (OMP), Apache v2.0 (Archer)
 Group:		Libraries
 #Source0Download: https://github.com/llvm/llvm-project/releases/
 Source0:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{version}/openmp-%{version}.src.tar.xz
-# Source0-md5:	b94978b13a7d411f6a448322dcc4954e
+# Source0-md5:	1581d82df3a5c2dfb9c010c06ca7b9e0
+#Source1Download: https://github.com/llvm/llvm-project/releases/
+Source1:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{version}/cmake-%{version}.src.tar.xz
+# Source1-md5:	38ae9cc0950f277c8f88e570c4d18010
 Patch0:		openmp-x86.patch
 URL:		https://openmp.llvm.org/
-BuildRequires:	cmake >= 3.13.4
+BuildRequires:	cmake >= 3.20.0
 %{?with_fortran:BuildRequires:	gcc-fortran}
+BuildRequires:	libstdc++-devel >= 6:7
 BuildRequires:	rpmbuild(macros) >= 1.605
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	xz
@@ -71,15 +75,29 @@ Fortran modules for Intel OpenMP implementation.
 %description fortran-devel -l pl.UTF-8
 Moduły Fortranu implementacji OpenMP firmy Intel.
 
+%package gdb
+Summary:	GDB support for LLVM OpenMP
+Summary(pl.UTF-8):	Obsługa GDB do LLVM OpenMP
+Group:		Development/Tools
+Requires:	%{name}-devel = %{version}-%{release}
+Requires:	gdb
+
+%description gdb
+GDB support for LLVM OpenMP.
+
+%description gdb -l pl.UTF-8
+Obsługa GDB do LLVM OpenMP.
+
 %prep
-%setup -q -n openmp-%{version}.src
+%setup -q -c -a1
+%{__mv} openmp-%{version}.src openmp
+%{__mv} cmake-%{version}.src cmake
+cd openmp
 %patch0 -p1
 
 %build
-install -d build
-cd build
 libsubdir=%{_lib}
-%cmake .. \
+%cmake -B build openmp \
 %ifarch %{arm} ppc64
 	-DLIBOMP_ARCH=%{iomp_arch} \
 %endif
@@ -87,7 +105,7 @@ libsubdir=%{_lib}
 	%{?with_fortran:-DLIBOMP_FORTRAN_MODULES=ON}
 # -DLLVM_ENABLE_SPHINX=ON needs llvm sources
 
-%{__make}
+%{__make} -C build
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -106,11 +124,13 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc CREDITS.txt LICENSE.TXT README.rst docs/ReleaseNotes.rst
+%doc openmp/{CREDITS.txt,LICENSE.TXT,README.rst} openmp/docs/ReleaseNotes.rst
 %attr(755,root,root) %{_libdir}/libarcher.so
 %attr(755,root,root) %{_libdir}/libomp.so
 %attr(755,root,root) %{_libdir}/libompd.so
+%ifarch %{x8664} aarch64 ppc64
 %attr(755,root,root) %{_libdir}/libomptarget.so
+%endif
 
 %files devel
 %defattr(644,root,root,755)
@@ -129,3 +149,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/omp_lib.mod
 %{_includedir}/omp_lib_kinds.mod
 %endif
+
+%files gdb
+%defattr(644,root,root,755)
+%dir %{_datadir}/gdb/python/ompd
+%{_datadir}/gdb/python/ompd/*.py
+# FIXME: should be in arch-dependent directory
+%attr(755,root,root) %{_datadir}/gdb/python/ompd/ompdModule.so
