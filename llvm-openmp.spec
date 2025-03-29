@@ -93,7 +93,7 @@ Obsługa GDB do LLVM OpenMP.
 %{__mv} openmp-%{version}.src openmp
 %{__mv} cmake-%{version}.src cmake
 cd openmp
-%patch0 -p1
+%patch -P0 -p1
 
 %build
 libsubdir=%{_lib}
